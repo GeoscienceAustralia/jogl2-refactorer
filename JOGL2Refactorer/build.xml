@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+
+<project name="JOGL2Refactorer" basedir="." default="run">
+
+	<property name="javac_debug" value="false" />
+
+	<property name="src_dir" value="${basedir}/src/main/java" />
+	<property name="lib_dir" value="${basedir}/lib" />
+
+	<property name="target_dir" value="${basedir}/target" />
+	<property name="build_dir" value="${target_dir}/classes" />
+	<property name="package_dir" value="${target_dir}/package" />
+	<property name="jar_name" value="jogl2refactorer.jar" />
+	<property name="batch_name" value="refactorer.bat" />
+
+	<path id="classpath">
+		<fileset dir="${lib_dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<pathconvert property="manifest.classpath" pathsep=" ">
+		<path refid="classpath" />
+		<mapper>
+			<chainedmapper>
+				<flattenmapper />
+			</chainedmapper>
+		</mapper>
+	</pathconvert>
+
+	<patternset id="manifest_exclude">
+		<exclude name="META-INF/**" />
+	</patternset>
+
+	<target name="clean" description="Remove all generated files">
+		<delete dir="${target_dir}" />
+	</target>
+
+	<target name="build" description="Compile the application source code">
+		<mkdir dir="${build_dir}" />
+		<javac source="1.6" target="1.6" destdir="${build_dir}" classpathref="classpath" listfiles="no" fork="true" debug="${javac_debug}" includeantruntime="no">
+			<src path="${src_dir}" />
+		</javac>
+	</target>
+
+	<target name="package" depends="build" description="Create the JAR file">
+		<mkdir dir="${package_dir}" />
+		<jar destfile="${package_dir}/${jar_name}">
+			<manifest>
+				<attribute name="Main-Class" value="refactorer.Main" />
+				<attribute name="Class-Path" value="${manifest.classpath}"/>
+			</manifest>
+			<fileset dir="${build_dir}" />
+		</jar>
+
+		<copy todir="${package_dir}">
+			<fileset dir="${lib_dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+
+		<echo file="${package_dir}/${batch_name}">@echo off ${line.separator}java -jar ${jar_name} %* ${line.separator}echo. ${line.separator}pause</echo>
+	</target>
+
+	<target name="run" depends="package" />
+
+</project>
